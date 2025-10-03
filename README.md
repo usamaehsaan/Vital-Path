@@ -1,2 +1,1 @@
-# Vital-Path
-Repository created with SnapDev
+# Welcome to your Snapdev app
