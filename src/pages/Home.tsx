@@ -30,9 +30,75 @@ import {
   Pin,
   PinOff,
   Image,
-  Trash2
+  Trash2,
+  Send,
+  Calendar,
+  Newspaper,
+  Award
 } from 'lucide-react';
 import { currentUser } from '@/lib/mockData';
+
+// Comment type definition
+interface Comment {
+  id: number;
+  postId: number;
+  authorId: string;
+  authorName: string;
+  authorSpecialization: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+}
+
+// Mock comments data
+const mockComments: Record<string, Comment[]> = {
+  '1': [
+    {
+      id: 1,
+      postId: 1,
+      authorId: '2',
+      authorName: 'Dr. Fatima Sheikh',
+      authorSpecialization: 'Emergency Medicine',
+      content: 'Absolutely agree! This is such important advice for new doctors. I always tell my residents the same thing.',
+      createdAt: '2024-12-02T11:30:00Z',
+      likes: 5
+    },
+    {
+      id: 2,
+      postId: 1,
+      authorId: '3',
+      authorName: 'Dr. Hassan Ali',
+      authorSpecialization: 'Pediatrics',
+      content: 'Great point about patient safety. In pediatrics, double-checking dosages is absolutely critical.',
+      createdAt: '2024-12-02T12:15:00Z',
+      likes: 3
+    }
+  ],
+  '2': [
+    {
+      id: 3,
+      postId: 2,
+      authorId: '1',
+      authorName: 'Dr. Ahmed Khan',
+      authorSpecialization: 'Cardiology',
+      content: 'Congratulations on completing your fellowship application! The process is indeed challenging but worth it.',
+      createdAt: '2024-12-02T13:00:00Z',
+      likes: 2
+    }
+  ],
+  '3': [
+    {
+      id: 4,
+      postId: 3,
+      authorId: '4',
+      authorName: 'Dr. Ayesha Malik',
+      authorSpecialization: 'Orthopedic Surgery',
+      content: 'Haha! So true! Sometimes a good laugh really does help patients feel more comfortable.',
+      createdAt: '2024-12-02T14:20:00Z',
+      likes: 8
+    }
+  ]
+};
 
 const Home = () => {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -45,6 +111,11 @@ const Home = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [activePostId, setActivePostId] = useState<number | null>(null);
+  const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState<Record<string, Comment[]>>(mockComments);
+  const [likedComments, setLikedComments] = useState<Set<number>>(new Set());
   const [locationSearch, setLocationSearch] = useState('');
   const [pinnedLocations, setPinnedLocations] = useState<Set<string>>(new Set(['Aga Khan University Hospital, Karachi', 'Shaukat Khanum Memorial Hospital, Lahore']));
 
@@ -88,6 +159,42 @@ const Home = () => {
   const suggestedCommunities = [
     { id: 4, name: 'Surgical Innovations Pakistan', members: 1560, avatar: 'SI' },
     { id: 5, name: 'Telemedicine Hub Pakistan', members: 980, avatar: 'TH' }
+  ];
+
+  // Mock news and events data
+  const newsAndEvents = [
+    {
+      id: 1,
+      type: 'conference',
+      title: 'Pakistan Medical Conference 2024',
+      description: 'Annual medical conference in Islamabad featuring latest research and innovations',
+      time: '3 days ago',
+      icon: Calendar
+    },
+    {
+      id: 2,
+      type: 'news',
+      title: 'New Healthcare Policy Announced',
+      description: 'Government introduces new telemedicine regulations for remote consultations',
+      time: '1 week ago',
+      icon: Newspaper
+    },
+    {
+      id: 3,
+      type: 'achievement',
+      title: 'AKUH Wins Excellence Award',
+      description: 'Aga Khan University Hospital recognized for cardiac surgery innovations',
+      time: '2 weeks ago',
+      icon: Award
+    },
+    {
+      id: 4,
+      type: 'event',
+      title: 'Medical Education Symposium',
+      description: 'CME credits available for continuing medical education in Lahore',
+      time: '3 weeks ago',
+      icon: Calendar
+    }
   ];
 
   // Enhanced mock posts data with Pakistani names and locations
@@ -186,6 +293,20 @@ const Home = () => {
     }
   };
 
+  const getNewsIconColor = (type: string) => {
+    switch (type) {
+      case 'conference':
+      case 'event':
+        return 'text-blue-600';
+      case 'news':
+        return 'text-green-600';
+      case 'achievement':
+        return 'text-orange-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
   const handleLike = (postId: number) => {
     setLikedPosts(prev => {
       const newSet = new Set(prev);
@@ -208,6 +329,45 @@ const Home = () => {
       }
       return newSet;
     });
+  };
+
+  const handleComment = (postId: number) => {
+    setActivePostId(postId);
+    setIsCommentsModalOpen(true);
+  };
+
+  const handleCommentLike = (commentId: number) => {
+    setLikedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim() && activePostId) {
+      const newCommentObj: Comment = {
+        id: Date.now(),
+        postId: activePostId,
+        authorId: currentUser.id,
+        authorName: currentUser.name,
+        authorSpecialization: currentUser.specialization,
+        content: newComment.trim(),
+        createdAt: new Date().toISOString(),
+        likes: 0
+      };
+
+      setComments(prev => ({
+        ...prev,
+        [activePostId.toString()]: [...(prev[activePostId.toString()] || []), newCommentObj]
+      }));
+
+      setNewComment('');
+    }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,6 +412,12 @@ const Home = () => {
     setSelectedImage(null);
   };
 
+  const handleCloseCommentsModal = () => {
+    setIsCommentsModalOpen(false);
+    setActivePostId(null);
+    setNewComment('');
+  };
+
   const handleLocationSelect = (location: string) => {
     setPostLocation(location);
     setIsLocationModalOpen(false);
@@ -271,6 +437,8 @@ const Home = () => {
   };
 
   const pinnedLocationsList = Array.from(pinnedLocations);
+  const activePost = posts.find(post => post.id === activePostId);
+  const postComments = activePostId ? comments[activePostId.toString()] || [] : [];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -315,7 +483,7 @@ const Home = () => {
               <div className="flex items-center space-x-3 mb-4">
                 <Avatar className="w-16 h-16">
                   <AvatarFallback className="bg-blue-100 text-blue-600 text-lg">
-                    {currentUser.name.split(' ').map(n => n[0]).join('')}
+                    {currentUser.name.split(' ').map((n: string) => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
@@ -421,7 +589,7 @@ const Home = () => {
           <div className="flex items-center space-x-4">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600">
-                {currentUser.name.split(' ').map(n => n[0]).join('')}
+                {currentUser.name.split(' ').map((n: string) => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 bg-gray-100 rounded-full px-4 py-3 text-gray-500">
@@ -493,7 +661,12 @@ const Home = () => {
                       <span>Like</span>
                     </Button>
                     
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-2 text-gray-600 hover:text-gray-700">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleComment(post.id)}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-gray-700"
+                    >
                       <MessageCircle className="w-4 h-4" />
                       <span>Comment</span>
                     </Button>
@@ -527,46 +700,43 @@ const Home = () => {
       }`}>
         <div className="p-4 pt-20 lg:pt-4 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-6 lg:hidden">
-            <h2 className="text-lg font-semibold">Activity & Trends</h2>
+            <h2 className="text-lg font-semibold">News & Events</h2>
             <Button variant="ghost" size="sm" onClick={() => setRightSidebarOpen(false)}>
               <X className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Recent Activity - Now First */}
+          {/* News and Event Updates */}
           <Card className="mb-6">
             <CardHeader>
               <h3 className="font-semibold flex items-center space-x-2">
-                <Activity className="w-4 h-4" />
-                <span>Recent Activity</span>
+                <Newspaper className="w-4 h-4" />
+                <span>News & Event Updates</span>
               </h3>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start space-x-2">
-                <Bell className="w-4 h-4 text-blue-600 mt-1" />
-                <div className="text-sm">
-                  <p>Dr. Hassan liked your post</p>
-                  <p className="text-gray-500 text-xs">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-2">
-                <Users className="w-4 h-4 text-green-600 mt-1" />
-                <div className="text-sm">
-                  <p>New connection request</p>
-                  <p className="text-gray-500 text-xs">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-2">
-                <Briefcase className="w-4 h-4 text-orange-600 mt-1" />
-                <div className="text-sm">
-                  <p>New job posting in your area</p>
-                  <p className="text-gray-500 text-xs">6 hours ago</p>
-                </div>
-              </div>
+            <CardContent className="space-y-4">
+              {newsAndEvents.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <div key={item.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                    <IconComponent className={`w-5 h-5 mt-0.5 flex-shrink-0 ${getNewsIconColor(item.type)}`} />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm text-gray-900 mb-1 line-clamp-1">{item.title}</h4>
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.description}</p>
+                      <p className="text-xs text-gray-400">{item.time}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              <Button variant="ghost" className="w-full justify-between text-blue-600 hover:text-blue-700 mt-4">
+                <span>View All News & Events</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </CardContent>
           </Card>
 
-          {/* Trending Topics - Now Second */}
+          {/* Trending Topics */}
           <Card>
             <CardHeader>
               <h3 className="font-semibold flex items-center space-x-2">
@@ -591,6 +761,133 @@ const Home = () => {
           </Card>
         </div>
       </div>
+
+      {/* Comments Modal */}
+      {isCommentsModalOpen && activePost && (
+        <>
+          {/* Modal Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[160]"
+            onClick={handleCloseCommentsModal}
+          />
+          
+          {/* Modal Content */}
+          <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Comments</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCloseCommentsModal}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Post Preview */}
+                <div className="flex items-start space-x-3">
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback className="bg-blue-100 text-blue-600">
+                      {activePost.author.avatar}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-medium text-gray-900">{activePost.author.name}</h3>
+                      <Badge className={`text-xs ${getCategoryColor(activePost.category)}`}>
+                        {activePost.category}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-700 line-clamp-2">{activePost.content}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comments List */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {postComments.length > 0 ? (
+                  <div className="space-y-4">
+                    {postComments.map((comment: Comment) => (
+                      <div key={comment.id} className="flex items-start space-x-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                            {comment.authorName.split(' ').map((n: string) => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h4 className="font-medium text-sm text-gray-900">{comment.authorName}</h4>
+                              <span className="text-xs text-gray-500">{comment.authorSpecialization}</span>
+                            </div>
+                            <p className="text-sm text-gray-700">{comment.content}</p>
+                          </div>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCommentLike(comment.id)}
+                              className={`text-xs h-6 px-2 ${
+                                likedComments.has(comment.id) ? 'text-red-600' : 'text-gray-500'
+                              }`}
+                            >
+                              <Heart className={`w-3 h-3 mr-1 ${likedComments.has(comment.id) ? 'fill-current' : ''}`} />
+                              {comment.likes + (likedComments.has(comment.id) ? 1 : 0)}
+                            </Button>
+                            <span className="text-xs text-gray-400">
+                              {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-2">No comments yet</p>
+                    <p className="text-sm text-gray-400">Be the first to share your thoughts!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Add Comment */}
+              <div className="border-t border-gray-200 p-6">
+                <div className="flex items-start space-x-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                      {currentUser.name.split(' ').map((n: string) => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <Textarea
+                      placeholder="Write a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="min-h-[60px] resize-none"
+                    />
+                    <div className="flex justify-end mt-3">
+                      <Button
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim()}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Comment
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Post Creation Modal */}
       {isPostModalOpen && (
@@ -620,7 +917,7 @@ const Home = () => {
                 <div className="flex items-start space-x-3 mb-4">
                   <Avatar className="w-12 h-12">
                     <AvatarFallback className="bg-blue-100 text-blue-600">
-                      {currentUser.name.split(' ').map(n => n[0]).join('')}
+                      {currentUser.name.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div>
