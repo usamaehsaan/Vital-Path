@@ -32,7 +32,7 @@ export interface Job {
 export interface Post {
   id: string;
   content: string;
-  category: 'professional-tips' | 'community' | 'general';
+  category: 'general' | 'tips' | 'career' | 'entertainment' | 'locum';
   authorId: string;
   authorName: string;
   authorSpecialization: string;

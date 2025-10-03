@@ -97,7 +97,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-[100]">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo - Responsive sizing */}
@@ -193,7 +193,7 @@ const Navbar = () => {
 
                         {/* Modal positioned relative to this button */}
                         {activeModal === (item.path === '/messages' ? 'messages' : 'notifications') && (
-                          <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50 max-h-96 overflow-hidden">
+                          <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-[110] max-h-96 overflow-hidden">
                             <div className="p-4 border-b">
                               <h3 className="font-semibold text-gray-900">
                                 {item.path === '/messages' ? 'Recent Messages' : 'Recent Notifications'}
@@ -292,7 +292,7 @@ const Navbar = () => {
       {/* Overlay */}
       {activeModal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-[55]"
           onClick={closeModal}
         />
       )}

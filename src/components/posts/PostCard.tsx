@@ -37,10 +37,16 @@ const PostCard = ({ post, onLike, onReshare, onComment }: PostCardProps) => {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'professional-tips':
+      case 'general':
+        return 'bg-gray-100 text-gray-800';
+      case 'tips':
         return 'bg-blue-100 text-blue-800';
-      case 'community':
+      case 'career':
         return 'bg-green-100 text-green-800';
+      case 'entertainment':
+        return 'bg-purple-100 text-purple-800';
+      case 'locum':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -48,10 +54,16 @@ const PostCard = ({ post, onLike, onReshare, onComment }: PostCardProps) => {
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'professional-tips':
-        return 'Professional Tips';
-      case 'community':
-        return 'Community';
+      case 'general':
+        return 'General';
+      case 'tips':
+        return 'Tips';
+      case 'career':
+        return 'Career';
+      case 'entertainment':
+        return 'Entertainment';
+      case 'locum':
+        return 'Locum';
       default:
         return 'General';
     }

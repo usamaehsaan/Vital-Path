@@ -25,7 +25,12 @@ import {
   FileText,
   UserCheck,
   Globe,
-  ArrowRight
+  ArrowRight,
+  Search,
+  Pin,
+  PinOff,
+  Image,
+  Trash2
 } from 'lucide-react';
 import { currentUser } from '@/lib/mockData';
 
@@ -35,9 +40,36 @@ const Home = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState('');
+  const [postCategory, setPostCategory] = useState('General'); // Default to General
   const [postLocation, setPostLocation] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [pinnedLocations, setPinnedLocations] = useState<Set<string>>(new Set(['Aga Khan University Hospital, Karachi', 'Shaukat Khanum Memorial Hospital, Lahore']));
+
+  // Mock Pakistani locations data
+  const mockLocations = [
+    'Aga Khan University Hospital, Karachi',
+    'Shaukat Khanum Memorial Hospital, Lahore',
+    'Pakistan Institute of Medical Sciences, Islamabad',
+    'Combined Military Hospital, Rawalpindi',
+    'Jinnah Postgraduate Medical Centre, Karachi',
+    'King Edward Medical University, Lahore',
+    'Liaquat National Hospital, Karachi',
+    'Services Hospital, Lahore',
+    'Holy Family Hospital, Rawalpindi',
+    'Nishtar Medical University, Multan',
+    'Lady Reading Hospital, Peshawar',
+    'Sandeman Provincial Hospital, Quetta',
+    'Faisalabad Institute of Cardiology, Faisalabad',
+    'Children Hospital, Lahore',
+    'Civil Hospital, Karachi'
+  ];
+
+  const filteredLocations = mockLocations.filter(location =>
+    location.toLowerCase().includes(locationSearch.toLowerCase())
+  );
 
   // Mock user stats
   const userStats = {
@@ -48,74 +80,110 @@ const Home = () => {
 
   // Mock communities data
   const joinedCommunities = [
-    { id: 1, name: 'Cardiology Network', members: 2340, avatar: 'CN' },
-    { id: 2, name: 'Emergency Medicine', members: 1890, avatar: 'EM' },
-    { id: 3, name: 'Medical Research', members: 3200, avatar: 'MR' }
+    { id: 1, name: 'Cardiology Network Pakistan', members: 2340, avatar: 'CN' },
+    { id: 2, name: 'Emergency Medicine Pakistan', members: 1890, avatar: 'EM' },
+    { id: 3, name: 'Medical Research Pakistan', members: 3200, avatar: 'MR' }
   ];
 
   const suggestedCommunities = [
-    { id: 4, name: 'Surgical Innovations', members: 1560, avatar: 'SI' },
-    { id: 5, name: 'Telemedicine Hub', members: 980, avatar: 'TH' }
+    { id: 4, name: 'Surgical Innovations Pakistan', members: 1560, avatar: 'SI' },
+    { id: 5, name: 'Telemedicine Hub Pakistan', members: 980, avatar: 'TH' }
   ];
 
-  // Enhanced mock posts data
+  // Enhanced mock posts data with Pakistani names and locations
   const posts = [
     {
       id: 1,
-      category: 'Medical Research',
-      location: 'Johns Hopkins Hospital, Baltimore',
+      category: 'Tips',
+      location: 'Aga Khan University Hospital, Karachi',
       author: {
-        name: 'Dr. Sarah Johnson',
+        name: 'Dr. Ahmed Khan',
         specialization: 'Cardiologist',
-        avatar: 'SJ'
+        avatar: 'AK'
       },
       timeAgo: '2 hours ago',
-      content: 'Excited to share our latest research findings on minimally invasive cardiac procedures. The results show a 40% reduction in recovery time for patients.',
+      content: 'Pro tip for young doctors: Always double-check medication dosages and never hesitate to ask senior colleagues for guidance. Patient safety comes first, and there\'s no shame in seeking clarification.',
       likes: 24,
       comments: 8,
       shares: 3
     },
     {
       id: 2,
-      category: 'Clinical Case',
-      location: 'Mayo Clinic, Rochester',
+      category: 'Career',
+      location: 'Shaukat Khanum Memorial Hospital, Lahore',
       author: {
-        name: 'Dr. Michael Chen',
+        name: 'Dr. Fatima Sheikh',
         specialization: 'Neurologist',
-        avatar: 'MC'
+        avatar: 'FS'
       },
       timeAgo: '4 hours ago',
-      content: 'Interesting case study: 45-year-old patient with rare neurological condition. Collaborative approach with our multidisciplinary team led to successful treatment.',
+      content: 'Just completed my fellowship application process! For those considering specialization, start early and build strong relationships with mentors. The journey is challenging but incredibly rewarding.',
       likes: 18,
       comments: 12,
       shares: 5
     },
     {
       id: 3,
-      category: 'Medical Education',
+      category: 'Entertainment',
       location: null,
       author: {
-        name: 'Dr. Emily Davis',
+        name: 'Dr. Hassan Ali',
         specialization: 'Emergency Medicine',
-        avatar: 'ED'
+        avatar: 'HA'
       },
       timeAgo: '6 hours ago',
-      content: 'Teaching medical students about emergency protocols today. Their enthusiasm and quick learning remind me why I love being an educator.',
+      content: 'When a patient asks if laughter is the best medicine... I tell them it\'s definitely in the top 10, right after actual medicine! 😄 Sometimes humor really does help with healing.',
       likes: 31,
       comments: 15,
       shares: 7
+    },
+    {
+      id: 4,
+      category: 'Locum',
+      location: 'Combined Military Hospital, Rawalpindi',
+      author: {
+        name: 'Dr. Ayesha Malik',
+        specialization: 'Orthopedic Surgery',
+        avatar: 'AM'
+      },
+      timeAgo: '8 hours ago',
+      content: 'Just finished a fantastic 2-week locum assignment in Rawalpindi. Great team, excellent facilities, and the experience of working in different environments really broadens your perspective as a physician.',
+      likes: 12,
+      comments: 6,
+      shares: 2
+    },
+    {
+      id: 5,
+      category: 'General',
+      location: 'Services Hospital, Lahore',
+      author: {
+        name: 'Dr. Muhammad Usman',
+        specialization: 'Family Medicine',
+        avatar: 'MU'
+      },
+      timeAgo: '10 hours ago',
+      content: 'Reflecting on why I chose medicine today. Every patient interaction reminds me of the privilege and responsibility we have as healthcare providers. Grateful for this calling.',
+      likes: 28,
+      comments: 9,
+      shares: 4
     }
   ];
 
   const getCategoryColor = (category: string) => {
-    const colors = {
-      'Medical Research': 'bg-blue-100 text-blue-800',
-      'Clinical Case': 'bg-green-100 text-green-800',
-      'Medical Education': 'bg-purple-100 text-purple-800',
-      'Healthcare Innovation': 'bg-orange-100 text-orange-800',
-      'Community Health': 'bg-pink-100 text-pink-800'
-    };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    switch (category) {
+      case 'General':
+        return 'bg-gray-100 text-gray-800';
+      case 'Tips':
+        return 'bg-blue-100 text-blue-800';
+      case 'Career':
+        return 'bg-green-100 text-green-800';
+      case 'Entertainment':
+        return 'bg-purple-100 text-purple-800';
+      case 'Locum':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   const handleLike = (postId: number) => {
@@ -142,20 +210,67 @@ const Home = () => {
     });
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        setSelectedImage(file);
+      }
+    }
+    // Reset the input value so the same file can be selected again
+    event.target.value = '';
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+  };
+
   const handlePublishPost = () => {
     if (postContent.trim()) {
       // Handle post publishing logic here
-      console.log('Publishing post:', { content: postContent, category: postCategory, location: postLocation });
+      console.log('Publishing post:', { 
+        content: postContent, 
+        category: postCategory, 
+        location: postLocation,
+        image: selectedImage 
+      });
       setPostContent('');
-      setPostCategory('');
+      setPostCategory('General'); // Reset to General after publishing
       setPostLocation('');
+      setSelectedImage(null); // Reset image
       setIsPostModalOpen(false);
     }
   };
 
   const handleCloseModal = () => {
     setIsPostModalOpen(false);
+    // Reset form when closing
+    setPostContent('');
+    setPostCategory('General');
+    setPostLocation('');
+    setSelectedImage(null);
   };
+
+  const handleLocationSelect = (location: string) => {
+    setPostLocation(location);
+    setIsLocationModalOpen(false);
+    setLocationSearch('');
+  };
+
+  const handlePinLocation = (location: string) => {
+    setPinnedLocations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(location)) {
+        newSet.delete(location);
+      } else {
+        newSet.add(location);
+      }
+      return newSet;
+    });
+  };
+
+  const pinnedLocationsList = Array.from(pinnedLocations);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -300,10 +415,10 @@ const Home = () => {
       <div className="flex-1 max-w-2xl mx-auto p-4 pt-18 lg:pt-6">
         {/* Compact Post Creation Bar */}
         <div 
-          className="bg-white rounded-lg border border-gray-200 p-3 mb-6 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+          className="bg-white rounded-lg border border-gray-200 px-6 py-4 mb-6 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
           onClick={() => setIsPostModalOpen(true)}
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600">
                 {currentUser.name.split(' ').map(n => n[0]).join('')}
@@ -430,7 +545,7 @@ const Home = () => {
               <div className="flex items-start space-x-2">
                 <Bell className="w-4 h-4 text-blue-600 mt-1" />
                 <div className="text-sm">
-                  <p>Dr. Wilson liked your post</p>
+                  <p>Dr. Hassan liked your post</p>
                   <p className="text-gray-500 text-xs">2 hours ago</p>
                 </div>
               </div>
@@ -461,15 +576,15 @@ const Home = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="text-sm">
-                <p className="font-medium text-blue-600">#CardiacSurgery</p>
+                <p className="font-medium text-blue-600">#CardiacSurgeryPK</p>
                 <p className="text-gray-500">1,234 posts</p>
               </div>
               <div className="text-sm">
-                <p className="font-medium text-blue-600">#MedicalEducation</p>
+                <p className="font-medium text-blue-600">#MedicalEducationPK</p>
                 <p className="text-gray-500">856 posts</p>
               </div>
               <div className="text-sm">
-                <p className="font-medium text-blue-600">#Telemedicine</p>
+                <p className="font-medium text-blue-600">#TelemedicinePK</p>
                 <p className="text-gray-500">642 posts</p>
               </div>
             </CardContent>
@@ -482,12 +597,12 @@ const Home = () => {
         <>
           {/* Modal Backdrop */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[120]"
             onClick={handleCloseModal}
           />
           
           {/* Modal Content */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -514,53 +629,226 @@ const Home = () => {
                   </div>
                 </div>
 
-                <Textarea
-                  placeholder="What's on your mind? Share your medical insights..."
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                  className="min-h-[120px] mb-4 text-base resize-none"
-                  autoFocus
-                />
+                {/* Auto-expanding Textarea */}
+                <div className="mb-4">
+                  <Textarea
+                    placeholder="What's on your mind? Share your medical insights..."
+                    value={postContent}
+                    onChange={(e) => setPostContent(e.target.value)}
+                    className="text-base border-none shadow-none px-3 py-2 text-gray-900 placeholder-gray-500 focus-visible:ring-0 resize-none min-h-[60px]"
+                    autoFocus
+                  />
+                </div>
 
-                <div className="flex items-center space-x-4 mb-6">
+                <div className="flex items-center space-x-4 mb-4">
                   <Select value={postCategory} onValueChange={setPostCategory}>
                     <SelectTrigger className="w-48">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Medical Research">Medical Research</SelectItem>
-                      <SelectItem value="Clinical Case">Clinical Case</SelectItem>
-                      <SelectItem value="Medical Education">Medical Education</SelectItem>
-                      <SelectItem value="Healthcare Innovation">Healthcare Innovation</SelectItem>
-                      <SelectItem value="Community Health">Community Health</SelectItem>
+                    <SelectContent className="z-[140]">
+                      <SelectItem value="General">General</SelectItem>
+                      <SelectItem value="Tips">Tips</SelectItem>
+                      <SelectItem value="Career">Career</SelectItem>
+                      <SelectItem value="Entertainment">Entertainment</SelectItem>
+                      <SelectItem value="Locum">Locum</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  <div className="flex items-center space-x-2 flex-1">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsLocationModalOpen(true)}
+                    className="flex items-center space-x-2 flex-1 justify-start"
+                  >
                     <MapPin className="w-4 h-4 text-gray-400" />
-                    <Input
-                      placeholder="Add location (optional)"
-                      value={postLocation}
-                      onChange={(e) => setPostLocation(e.target.value)}
+                    <span className="text-gray-500 truncate">
+                      {postLocation || 'Add location'}
+                    </span>
+                  </Button>
+                </div>
+
+                {/* Single Image Preview Section - Only show when image is selected */}
+                {selectedImage && (
+                  <div className="mb-4">
+                    <div className="relative group max-w-sm">
+                      <img
+                        src={URL.createObjectURL(selectedImage)}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom Action Row with Add/Change Image, Cancel, and Publish Post */}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <input
+                      type="file"
+                      id="image-upload"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
                     />
+                    <label htmlFor="image-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex items-center space-x-2 cursor-pointer"
+                        asChild
+                      >
+                        <span>
+                          <Image className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-500">
+                            {selectedImage ? 'Change Image' : 'Add Image'}
+                          </span>
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleCloseModal}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handlePublishPost}
+                      disabled={!postContent.trim()}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Publish Post
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Location Selection Modal */}
+      {isLocationModalOpen && (
+        <>
+          {/* Modal Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[140]"
+            onClick={() => setIsLocationModalOpen(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Add Location</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsLocationModalOpen(false)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search locations..."
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                    className="pl-10"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Pinned Locations */}
+                {pinnedLocationsList.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-1">
+                      <Pin className="w-4 h-4" />
+                      <span>Pinned Locations</span>
+                    </h3>
+                    <div className="space-y-1">
+                      {pinnedLocationsList.map((location) => (
+                        <div
+                          key={location}
+                          className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                          onClick={() => handleLocationSelect(location)}
+                        >
+                          <div className="flex items-center space-x-2 flex-1">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-900 truncate">{location}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePinLocation(location);
+                            }}
+                            className="h-8 w-8 p-0 text-blue-600"
+                          >
+                            <PinOff className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Search Results */}
+                <div className="max-h-64 overflow-y-auto">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    {locationSearch ? 'Search Results' : 'All Locations'}
+                  </h3>
+                  <div className="space-y-1">
+                    {filteredLocations.map((location) => (
+                      <div
+                        key={location}
+                        className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                        onClick={() => handleLocationSelect(location)}
+                      >
+                        <div className="flex items-center space-x-2 flex-1">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-900 truncate">{location}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePinLocation(location);
+                          }}
+                          className={`h-8 w-8 p-0 ${
+                            pinnedLocations.has(location) ? 'text-blue-600' : 'text-gray-400'
+                          }`}
+                        >
+                          {pinnedLocations.has(location) ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleCloseModal}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handlePublishPost}
-                    disabled={!postContent.trim()}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Publish Post
-                  </Button>
-                </div>
+                {filteredLocations.length === 0 && locationSearch && (
+                  <div className="text-center py-8">
+                    <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No locations found</p>
+                    <p className="text-sm text-gray-400">Try a different search term</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
